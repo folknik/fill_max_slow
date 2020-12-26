@@ -1,3 +1,9 @@
+"""
+Даг берет записи из таблицы public.noise_tracks, у которых max_slow_time is null and max_slow = 0.
+Затем из полученной таблицы для каждой записи делает запрос к сырым данным eco_monitoring.noise_raw_data и
+согласно first_time_data & last_time_data находит max_slow & max_slow_time
+"""
+
 import os
 from airflow import DAG
 from datetime import datetime, timedelta
@@ -17,7 +23,8 @@ default_args = {
 }
 
 refs = dict()
-refs['execution_date'] = {{ ds }}
+refs['execution_date'] = '{{ ds }}'
+refs['update_status'] = 'false'
 
 dag = DAG(
     dag_id=DAG_ID,
@@ -33,6 +40,6 @@ task = DockerOperator(
     auto_remove=True,
     docker_url='unix://var/run/docker.sock',
     api_version='auto',
-    image='fill_noise_gaps:v1.0',
+    image='fill_max_slow:v1.0',
     environment=refs
 )
