@@ -2,7 +2,7 @@ import os
 import json
 import psycopg2
 from datetime import datetime, timedelta
-from clickhouse_driver import connect
+import clickhouse_driver
 
 
 execution_date = os.environ['execution_date']
@@ -20,11 +20,11 @@ def main(d):
                                host=refs["postgres_host"])
     ps_cursor = ps_conn.cursor()
 
-    ch_conn = connect('clickhouse://{}:{}@{}:9000/{}'.format(refs["clickhouse_user"],
-                                                              refs["clickhouse_pw"],
-                                                              refs["clickhouse_host"],
-                                                              refs["clickhouse_db"])
-                      )
+    ch_conn = clickhouse_driver.connect(user=refs["clickhouse_user"],
+                                        password=refs["clickhouse_pw"],
+                                        host=refs["clickhouse_host"],
+                                        port='9000',
+                                        database=refs["clickhouse_db"])
     ch_cursor = ch_conn.cursor()
 
     d = datetime.strptime(d, '%Y-%m-%d')
@@ -71,6 +71,8 @@ def main(d):
 
     ps_cursor.close()
     ps_conn.close()
+    ch_cursor.close()
+    ch_conn.close()
 
 
 if __name__ == '__main__':
